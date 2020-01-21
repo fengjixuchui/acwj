@@ -109,7 +109,7 @@ However, `additive_expr()` will have to defer to the higher-precedence
 
 ## `additive_expr()`
 
-```
+```c
 // Return an AST tree whose root is a '+' or '-' binary operator
 struct ASTnode *additive_expr(void) {
   struct ASTnode *left, *right;
@@ -137,7 +137,7 @@ struct ASTnode *additive_expr(void) {
     // And get the next token at our precedence
     tokentype = Token.token;
     if (tokentype == T_EOF)
-      return (left);
+      break;
   }
 
   // Return whatever tree we have created
@@ -175,7 +175,7 @@ we would be combining sub-trees with multiple nodes in them.
 
 ## multiplicative_expr()
 
-```
+```c
 // Return an AST tree whose root is a '*' or '/' binary operator
 struct ASTnode *multiplicative_expr(void) {
   struct ASTnode *left, *right;
@@ -203,7 +203,7 @@ struct ASTnode *multiplicative_expr(void) {
     // If no tokens left, return just the left node
     tokentype = Token.token;
     if (tokentype == T_EOF)
-      return (left);
+      break;
   }
 
   // Return whatever tree we have created
@@ -221,9 +221,7 @@ back to `additive_expr()` to deal with the low precedence operator.
 ## Drawbacks of the Above
 
 The above way of constructing a recursive descent parser with
-explicit operator precedence is known as the
-[precedence climbing method](https://en.wikipedia.org/wiki/Operator-precedence_parser#Precedence_climbing_method).
-As is noted in the Wikipedia article, this can be inefficient because of
+explicit operator precedence can be inefficient because of
 all the function calls needed to reach the right level of precedence.
 There also has to be functions to deal with each level of operator
 precedence, so we end up with lots of lines of code.
@@ -249,7 +247,7 @@ for `expr2.c`. Let's start the tour.
 Firstly, we need some code to determine the precedence levels for each
 token:
 
-```
+```c
 // Operator precedence for each token
 static int OpPrec[] = { 0, 10, 10, 20, 20,    0 };
 //                     EOF  +   -   *   /  INTLIT
@@ -280,7 +278,7 @@ the `op_precedence()` function enforces the correct grammar syntax.
 Now, instead of having a function for each precedence level, we have a
 single expression function that uses the table of operator precedences:
 
-```
+```c
 // Return an AST tree whose root is a binary operator.
 // Parameter ptp is the previous token's precedence.
 struct ASTnode *binexpr(int ptp) {
@@ -334,7 +332,7 @@ get the operator's token type, then loop building a tree.
 
 The difference is the loop condition and body:
 
-```
+```c
 multiplicative_expr():
   while ((tokentype == T_STAR) || (tokentype == T_SLASH)) {
     scan(&Token); right = primary();
@@ -363,7 +361,7 @@ to raise the operator precedence.
 
 Once we hit a token at our precedence level or lower, we will simply:
 
-```
+```c
   return (left);
 ```
 
